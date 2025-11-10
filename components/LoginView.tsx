@@ -1,71 +1,35 @@
-
 import React, { useState } from 'react';
-import { LogoIcon, GoogleIcon, CloseIcon, UserIcon } from './Icons';
+import { LogoIcon, GoogleIcon } from './Icons';
 import { User } from '../types';
 
 interface LoginViewProps {
-    onLoginSuccess: (user: User) => void;
+    onLogin: (user: User) => void;
 }
 
-const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
-    const [showModal, setShowModal] = useState(false);
+const LoginView: React.FC<LoginViewProps> = ({ onLogin }) => {
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
-    const mockUsers: User[] = [
-        { uid: '1', email: 'user.one@example.com', displayName: 'المستخدم الأول' },
-        { uid: '2', email: 'user.two@example.com', displayName: 'المستخدم الثاني' },
-        { uid: '3', email: 'another.user@example.com', displayName: 'مستخدم آخر' },
-    ];
-    
-    const handleLogin = (user: User) => {
-        onLoginSuccess(user);
-        setShowModal(false);
+    const handleGoogleLogin = () => {
+        setIsLoading(true);
+        setError(null);
+
+        // This is a mock login to bypass environment restrictions
+        // where real Firebase popups fail.
+        setTimeout(() => {
+            const demoUser: User = {
+                uid: 'demo-user-id-123',
+                email: 'demo@example.com',
+                displayName: 'مستخدم تجريبي',
+            };
+            onLogin(demoUser);
+            // No need to set isLoading(false) as the component will unmount
+        }, 1000);
     };
-
-    const AccountModal = () => (
-        <div 
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-            onClick={() => setShowModal(false)}
-        >
-            <div 
-                className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-sm border border-slate-200 dark:border-slate-700 animate-fade-in-up"
-                onClick={(e) => e.stopPropagation()}
-            >
-                <div className="flex justify-between items-center p-4 border-b dark:border-slate-700">
-                    <h2 className="text-lg font-bold text-slate-800 dark:text-white">اختر حسابًا</h2>
-                    <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
-                        <CloseIcon />
-                    </button>
-                </div>
-                <div className="p-2">
-                    {mockUsers.map(user => (
-                        <div 
-                            key={user.uid} 
-                            onClick={() => handleLogin(user)}
-                            className="flex items-center gap-4 p-3 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg cursor-pointer transition-colors"
-                        >
-                            <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-600 flex items-center justify-center">
-                                <UserIcon />
-                            </div>
-                            <div>
-                                <p className="font-semibold text-slate-800 dark:text-slate-100">{user.displayName}</p>
-                                <p className="text-sm text-slate-500 dark:text-slate-400">{user.email}</p>
-                            </div>
-                        </div>
-                    ))}
-                    <div className="p-3 mt-2 border-t dark:border-slate-700 text-center">
-                        <a href="#" className="text-sm text-blue-600 dark:text-blue-400 hover:underline">
-                            استخدام حساب آخر
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
-            {showModal && <AccountModal />}
-            <div className="w-full max-w-md">
+            <div className="w-full max-w-md animate-fade-in-up">
                 <div className="bg-white dark:bg-slate-800 p-8 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-700 text-center">
                     <div className="flex justify-center mb-6">
                         <LogoIcon />
@@ -77,12 +41,22 @@ const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess }) => {
 
                     <button
                         type="button"
-                        onClick={() => setShowModal(true)}
-                        className="w-full max-w-xs mx-auto flex items-center justify-center gap-3 bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:shadow-xl hover:bg-blue-700 transform hover:-translate-y-0.5 transition-all duration-300"
+                        onClick={handleGoogleLogin}
+                        disabled={isLoading}
+                        className="w-full max-w-xs mx-auto flex items-center justify-center gap-3 bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:shadow-xl hover:bg-blue-700 transform hover:-translate-y-0.5 transition-all duration-300 disabled:bg-blue-400 disabled:cursor-not-allowed"
                     >
-                        <GoogleIcon />
-                        <span>المتابعة باستخدام جوجل</span>
+                        {isLoading ? (
+                            <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                        ) : (
+                            <GoogleIcon />
+                        )}
+                        <span>{isLoading ? 'جاري تسجيل الدخول...' : 'المتابعة باستخدام جوجل'}</span>
                     </button>
+                    
+                    {error && <p className="text-red-500 text-sm mt-4">{error}</p>}
 
                     <p className="text-xs text-slate-400 dark:text-slate-500 mt-8">
                         بالاستمرار، فإنك توافق على شروط الخدمة وسياسة الخصوصية الخاصة بنا.

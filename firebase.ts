@@ -49,7 +49,6 @@ if (!firebase.apps.length) {
 
 export const auth = firebase.auth();
 
-// FIX: Set persistence to 'none' (in-memory).
 // This is necessary to support environments where web storage is not available
 // or the app is not running on http/https, which causes the
 // 'auth/operation-not-supported-in-this-environment' error.

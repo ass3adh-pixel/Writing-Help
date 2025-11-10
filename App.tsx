@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useEffect } from 'react';
 import { Tool, AnalysisResult, SummaryLength } from './types';
 import * as geminiService from './services/geminiService';
@@ -25,7 +24,7 @@ const App: React.FC = () => {
     const [currentView, setCurrentView] = useState<'app' | 'about' | 'privacy'>('app');
     const [summaryLength, setSummaryLength] = useState<SummaryLength>('medium');
     const [analyzedText, setAnalyzedText] = useState<string | null>(null);
-    
+
     useEffect(() => {
         setResult(null);
         setError(null);

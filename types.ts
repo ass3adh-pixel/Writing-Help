@@ -29,7 +29,7 @@ export interface SummarizationResult {
 
 export type AnalysisResult = string | PlagiarismResult | SummarizationResult | null;
 
-// FIX: Define and export the User type.
+// Fix: Add User interface for LoginView component
 export interface User {
     uid: string;
     email: string | null;

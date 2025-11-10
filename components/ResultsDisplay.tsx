@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Tool, AnalysisResult, PlagiarismResult, PlagiarismSource, SummarizationResult } from '../types';
-import { LoaderIcon, WritingIllustration, WarningIcon, LinkIcon, CopyIcon, ReplaceIcon, CheckIcon } from './Icons';
+import { LoaderIcon, WritingIllustration, WarningIcon, LinkIcon, CopyIcon, ReplaceIcon, CheckIcon, PencilIcon } from './Icons';
 
 declare global {
     interface Window {
@@ -70,8 +70,11 @@ const HighlightedText: React.FC<{
     );
 };
 
-const PlagiarismView: React.FC<{ result: PlagiarismResult; analyzedText: string }> = ({ result, analyzedText }) => {
+const PlagiarismView: React.FC<{ result: PlagiarismResult; analyzedText: string; setInputText: (text: string) => void; }> = ({ result, analyzedText, setInputText }) => {
     const [selectedSourceIndex, setSelectedSourceIndex] = useState<number | null>(null);
+    const [isEditing, setIsEditing] = useState<boolean>(false);
+    const [editedText, setEditedText] = useState<string>(analyzedText);
+    
     const similarity = Math.round(result.similarity);
     const color = similarity > 50 ? 'red' : similarity > 20 ? 'yellow' : 'indigo';
 
@@ -79,6 +82,20 @@ const PlagiarismView: React.FC<{ result: PlagiarismResult; analyzedText: string 
         setSelectedSourceIndex(index);
         const element = document.getElementById(`source-item-${index}`);
         element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    };
+    
+    const handleEditClick = () => {
+        setIsEditing(true);
+    };
+
+    const handleCancelEdit = () => {
+        setIsEditing(false);
+        setEditedText(analyzedText); // Reset changes
+    };
+
+    const handleUpdateText = () => {
+        setInputText(editedText);
+        setIsEditing(false);
     };
 
     return (
@@ -114,15 +131,55 @@ const PlagiarismView: React.FC<{ result: PlagiarismResult; analyzedText: string 
 
             {analyzedText && result.sources && result.sources.length > 0 && (
                 <div>
-                    <h4 className="text-md font-semibold text-slate-800 dark:text-white mb-2">النص المُحلل (اضغط على الأجزاء المظللة للمقارنة)</h4>
-                     <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-lg border border-slate-200 dark:border-slate-700 max-h-60 overflow-y-auto text-base leading-relaxed">
-                        <HighlightedText
-                            text={analyzedText}
-                            sources={result.sources}
-                            onSnippetClick={handleSnippetClick}
-                            selectedIndex={selectedSourceIndex}
-                        />
+                     <div className="flex justify-between items-center mb-2">
+                        <h4 className="text-md font-semibold text-slate-800 dark:text-white">
+                            {isEditing ? 'تعديل النص' : 'النص المُحلل (اضغط على الأجزاء المظللة للمقارنة)'}
+                        </h4>
+                        {!isEditing && (
+                            <button
+                                onClick={handleEditClick}
+                                className="flex items-center gap-2 px-3 py-1.5 text-sm font-semibold text-indigo-600 bg-indigo-100 rounded-lg hover:bg-indigo-200 dark:bg-indigo-900/50 dark:text-indigo-300 dark:hover:bg-indigo-900 transition-colors"
+                            >
+                                <PencilIcon />
+                                <span>تعديل</span>
+                            </button>
+                        )}
                     </div>
+                     <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-lg border border-slate-200 dark:border-slate-700 max-h-60 overflow-y-auto text-base leading-relaxed">
+                        {isEditing ? (
+                            <textarea
+                                value={editedText}
+                                onChange={(e) => setEditedText(e.target.value)}
+                                className="w-full h-full bg-transparent border-0 p-0 focus:ring-0 resize-none text-slate-800 dark:text-slate-200"
+                                style={{ minHeight: '180px' }}
+                                autoFocus
+                            />
+                        ) : (
+                            <HighlightedText
+                                text={analyzedText}
+                                sources={result.sources}
+                                onSnippetClick={handleSnippetClick}
+                                selectedIndex={selectedSourceIndex}
+                            />
+                        )}
+                    </div>
+                    {isEditing && (
+                        <div className="flex items-center gap-3 mt-4">
+                            <button
+                                onClick={handleUpdateText}
+                                className="flex-grow flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors"
+                            >
+                                <ReplaceIcon />
+                                <span>تحديث النص الأصلي</span>
+                            </button>
+                            <button
+                                onClick={handleCancelEdit}
+                                className="flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold text-slate-700 bg-slate-200 rounded-lg hover:bg-slate-300 dark:bg-slate-600 dark:text-slate-200 dark:hover:bg-slate-500 transition-colors"
+                            >
+                                <span>إلغاء</span>
+                            </button>
+                        </div>
+                    )}
                 </div>
             )}
 
@@ -317,7 +374,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ isLoading, error, resul
             case Tool.Plagiarism:
                 return (
                     <div className="h-full overflow-y-auto pr-2 -mr-2">
-                        <PlagiarismView result={result as PlagiarismResult} analyzedText={analyzedText!} />
+                        <PlagiarismView result={result as PlagiarismResult} analyzedText={analyzedText!} setInputText={setInputText} />
                     </div>
                 );
             case Tool.Summarize:
