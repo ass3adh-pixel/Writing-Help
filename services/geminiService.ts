@@ -1,0 +1,147 @@
+
+import { GoogleGenAI, Type } from "@google/genai";
+import { PlagiarismResult, SummarizationResult, SummaryLength } from '../types';
+
+if (!process.env.API_KEY) {
+    throw new Error("API_KEY environment variable not set");
+}
+
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+
+const PLAGIARISM_SCHEMA = {
+    type: Type.OBJECT,
+    properties: {
+        similarity: {
+            type: Type.NUMBER,
+            description: "A percentage (0-100) representing the overall similarity of the text to existing sources.",
+        },
+        sources: {
+            type: Type.ARRAY,
+            description: "A list of sources that contain similar text.",
+            items: {
+                type: Type.OBJECT,
+                properties: {
+                    url: {
+                        type: Type.STRING,
+                        description: "The URL of the matched source.",
+                    },
+                    text: {
+                        type: Type.STRING,
+                        description: "The specific snippet of text that was matched from the source.",
+                    },
+                    percentage: {
+                        type: Type.NUMBER,
+                        description: "The similarity percentage of this specific snippet.",
+                    },
+                    originalTextSnippet: {
+                        type: Type.STRING,
+                        description: "The specific snippet from the user's original text that matches the source.",
+                    },
+                    confidenceScore: {
+                        type: Type.NUMBER,
+                        description: "A score from 0.0 to 1.0 indicating the model's confidence in this match.",
+                    },
+                },
+                required: ["url", "text", "percentage", "originalTextSnippet", "confidenceScore"],
+            },
+        },
+        summary: {
+            type: Type.STRING,
+            description: "A brief one or two-sentence summary of the plagiarism findings."
+        }
+    },
+    required: ["similarity", "sources", "summary"],
+};
+
+const SUMMARIZATION_SCHEMA = {
+    type: Type.OBJECT,
+    properties: {
+        summaryText: {
+            type: Type.STRING,
+            description: "The summarized text, formatted according to the user's request (e.g., short paragraph, bullet points using Markdown)."
+        },
+        reductionPercentage: {
+            type: Type.NUMBER,
+            description: "A percentage (0-100) indicating how much the original text was reduced in length (e.g., if original is 100 words and summary is 20, reduction is 80%)."
+        }
+    },
+    required: ["summaryText", "reductionPercentage"]
+};
+
+
+export const checkPlagiarism = async (text: string): Promise<PlagiarismResult> => {
+    const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: `أنت مدقق انتحال متخصص للنصوص العربية. قم بتحليل النص التالي بعناية. حدد نسبة التشابه الإجمالية. لكل مصدر محتمل تجده: 1) اذكر رابط المصدر (URL). 2) اقتبس المقتطف المطابق من المصدر. 3) اقتبس المقتطف المطابق من النص الأصلي للمستخدم. 4) قدم نسبة التشابه لهذا المقتطف. 5) قدم درجة ثقة (من 0.0 إلى 1.0) في هذا التطابق. قدم النتائج النهائية بصيغة JSON. إذا لم يتم العثور على أي تطابق، أرجع نسبة التشابه 0 وقائمة مصادر فارغة. النص هو: "${text}"`,
+        config: {
+            responseMimeType: 'application/json',
+            responseSchema: PLAGIARISM_SCHEMA,
+        },
+    });
+
+    try {
+        const jsonString = response.text;
+        const result = JSON.parse(jsonString);
+        return result as PlagiarismResult;
+    } catch (error) {
+        console.error("Failed to parse plagiarism check response:", response.text);
+        throw new Error("لم نتمكن من تحليل استجابة فحص الانتحال.");
+    }
+};
+
+export const paraphraseText = async (text: string): Promise<string> => {
+    const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: `أنت مساعد كتابة عربي خبير. أعد صياغة النص التالي بأسلوب احترافي وواضح، مع الحفاظ على المعنى الأصلي. النص هو: "${text}"`,
+    });
+    return response.text;
+};
+
+export const summarizeText = async (text: string, length: SummaryLength): Promise<SummarizationResult> => {
+    let promptInstruction = '';
+    switch (length) {
+        case 'short':
+            promptInstruction = 'قم بتلخيص النص التالي في جملة واحدة موجزة.';
+            break;
+        case 'medium':
+            promptInstruction = 'قم بتلخيص النص التالي في فقرة قصيرة.';
+            break;
+        case 'long':
+            promptInstruction = 'قم بتلخيص النص التالي في عدة نقاط رئيسية مفصلة.';
+            break;
+        case 'bullet_points':
+            promptInstruction = 'قم بتلخيص النص التالي في شكل نقاط رئيسية واضحة وموجزة باستخدام تنسيق Markdown.';
+            break;
+    }
+
+    const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: `مهمتك هي تلخيص النص التالي مع حساب نسبة التلخيص. نسبة التلخيص هي النسبة المئوية لمدى تقليل النص الأصلي. على سبيل المثال، إذا كان النص الأصلي 100 كلمة والملخص 20 كلمة، فإن نسبة التلخيص هي 80%. ${promptInstruction} قم بإرجاع النتيجة ككائن JSON. أنت خبير في تلخيص النصوص العربية. النص هو: "${text}"`,
+        config: {
+            responseMimeType: 'application/json',
+            responseSchema: SUMMARIZATION_SCHEMA,
+        },
+    });
+    
+    try {
+        const jsonString = response.text;
+        const result = JSON.parse(jsonString);
+        return result as SummarizationResult;
+    } catch (error) {
+        console.error("Failed to parse summarization response:", response.text);
+        throw new Error("لم نتمكن من تحليل استجابة التلخيص.");
+    }
+};
+
+export const checkGrammar = async (text: string): Promise<string> => {
+    const response = await ai.models.generateContent({
+        model: 'gemini-2.5-pro',
+        contents: `أنت مدقق لغوي ونحوي خبير للغة العربية. قم بمراجعة النص التالي، وحدد أي أخطاء إملائية أو نحوية أو علامات ترقيم. قدم التصويبات مع شرح موجز لكل خطأ. استخدم تنسيق Markdown لتسليط الضوء على الأخطاء والتصويبات. على سبيل المثال:
+- الخطأ: 'الخطء الإملائي' (الكلمة الأصلية) -> التصويب: 'الخطأ الإملائي' (الكلمة الصحيحة). **السبب**: خطأ إملائي شائع.
+- الخطأ: 'ذهب محمد واحمد' (الجملة الأصلية) -> التصويب: 'ذهب محمد وأحمد'. **السبب**: استخدام غير صحيح لواو العطف.
+
+إذا كان النص خاليًا من الأخطاء، فاذكر ذلك بوضوح. النص هو:
+"${text}"`,
+    });
+    return response.text;
+};

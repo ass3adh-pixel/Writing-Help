@@ -1,0 +1,5 @@
+{
+  "name": "Arabic Plagiarism Checker & Writing Assistant",
+  "description": "A comprehensive tool for checking plagiarism in Arabic texts and enhancing writing with paraphrasing, summarization, and grammar checking tools, powered by Gemini.",
+  "requestFramePermissions": []
+}
