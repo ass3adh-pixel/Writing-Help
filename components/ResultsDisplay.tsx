@@ -1,7 +1,7 @@
-
 import React, { useState } from 'react';
 import { Tool, AnalysisResult, PlagiarismResult, PlagiarismSource, SummarizationResult } from '../types';
 import { LoaderIcon, WritingIllustration, WarningIcon, LinkIcon, CopyIcon, ReplaceIcon, CheckIcon, PencilIcon } from './Icons';
+import AdPlaceholder from './AdPlaceholder';
 
 declare global {
     interface Window {
@@ -373,9 +373,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ isLoading, error, resul
         switch (activeTool) {
             case Tool.Plagiarism:
                 return (
-                    <div className="h-full overflow-y-auto pr-2 -mr-2">
-                        <PlagiarismView result={result as PlagiarismResult} analyzedText={analyzedText!} setInputText={setInputText} />
-                    </div>
+                    <PlagiarismView result={result as PlagiarismResult} analyzedText={analyzedText!} setInputText={setInputText} />
                 );
             case Tool.Summarize:
                 return <SummarizationView result={result as SummarizationResult} onReplaceText={setInputText} />;
@@ -389,7 +387,12 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ isLoading, error, resul
 
     return (
         <div className="h-full flex flex-col">
-            {renderResult()}
+            <div className="flex-grow min-h-0 overflow-y-auto pr-4 -mr-4">
+                 {renderResult()}
+            </div>
+            <div className="flex-shrink-0 pt-4 pr-4">
+                 <AdPlaceholder className="h-28" />
+            </div>
         </div>
     );
 };

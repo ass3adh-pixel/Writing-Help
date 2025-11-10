@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect } from 'react';
 import { Tool, AnalysisResult, SummaryLength } from './types';
 import * as geminiService from './services/geminiService';
@@ -12,7 +13,9 @@ import About from './components/About';
 import { LoaderIcon, ClearIcon } from './components/Icons';
 import SummarizeOptions from './components/SummarizeOptions';
 import Hero from './components/Hero';
+import ExampleTexts from './components/ExampleTexts';
 import Footer from './components/Footer';
+import AdPlaceholder from './components/AdPlaceholder';
 
 
 const App: React.FC = () => {
@@ -31,7 +34,9 @@ const App: React.FC = () => {
         setAnalyzedText(null);
     }, [activeTool]);
 
-    const handleFileSelect = useCallback(async (file: File | null) => {
+    // FIX: Removed useCallback with an empty dependency array to prevent stale closures.
+    // A regular async function is safer here. Also improved error type safety.
+    const handleFileSelect = async (file: File | null) => {
         if (!file) return;
         setIsLoading(true);
         setError(null);
@@ -40,15 +45,17 @@ const App: React.FC = () => {
         try {
             const text = await extractTextFromFile(file);
             setInputText(text);
-        } catch (err) {
+        } catch (err: unknown) {
             setError('فشل في قراءة الملف. يرجى التأكد من أنه ملف DOCX أو TXT صالح.');
             console.error(err);
         } finally {
             setIsLoading(false);
         }
-    }, []);
+    };
 
-    const handleSubmit = useCallback(async () => {
+    // FIX: Removed useCallback with an incomplete dependency array to prevent stale closures.
+    // A regular async function is simpler and avoids potential bugs. Also improved error type safety.
+    const handleSubmit = async () => {
         if (!inputText.trim()) {
             setError('الرجاء إدخال نص أو تحميل ملف للمتابعة.');
             return;
@@ -74,19 +81,26 @@ const App: React.FC = () => {
                     break;
             }
             setResult(apiResponse);
-        } catch (err: any) {
-            setError(`حدث خطأ أثناء المعالجة: ${err.message}`);
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : 'حدث خطأ غير معروف.';
+            setError(`حدث خطأ أثناء المعالجة: ${message}`);
             console.error(err);
         } finally {
             setIsLoading(false);
         }
-    }, [inputText, activeTool, summaryLength]);
+    };
     
     const handleClear = () => {
         setInputText('');
         setResult(null);
         setError(null);
         setAnalyzedText(null);
+    };
+
+    const handleUseExample = (text: string, tool: Tool) => {
+        setInputText(text);
+        setActiveTool(tool);
+        document.getElementById('main-app')?.scrollIntoView({ behavior: 'smooth' });
     };
 
     const MainAppView = () => (
@@ -137,6 +151,7 @@ const App: React.FC = () => {
                 </div>
             </div>
         </div>
+        <AdPlaceholder className="h-24 lg:h-32" />
       </div>
     );
 
@@ -151,6 +166,10 @@ const App: React.FC = () => {
                 return (
                     <>
                         <Hero />
+                        <ExampleTexts onUseExample={handleUseExample} />
+                        <div className="w-full max-w-7xl mx-auto px-4 md:px-8">
+                            <AdPlaceholder className="h-24" />
+                        </div>
                         <MainAppView />
                     </>
                 );
