@@ -1,6 +1,7 @@
+
 import React, { useState } from 'react';
 import { Tool } from '../types';
-import { LightbulbIcon, PlagiarismIcon, ParaphraseIcon, SummarizeIcon, GrammarIcon } from './Icons';
+import { LightbulbIcon, PlagiarismIcon, ParaphraseIcon, SummarizeIcon, GrammarIcon, AIDetectorIcon } from './Icons';
 
 interface ExampleTextsProps {
     onUseExample: (text: string, tool: Tool) => void;
@@ -26,6 +27,11 @@ const examples = {
         name: 'تدقيق نحوي',
         icon: <GrammarIcon />,
         text: 'ذهب الطلاب اللي المدرسة صباحا. وكانو متحمسين لتعلم اشياء جديدة.'
+    },
+    [Tool.AIDetector]: {
+        name: 'كاشف الذكاء الاصطناعي',
+        icon: <AIDetectorIcon />,
+        text: 'يمثل الذكاء الاصطناعي تحولاً نموذجياً في التكنولوجيا، حيث يقدم حلولاً مبتكرة عبر مختلف الصناعات ويعيد تشكيل مستقبل العمل والتفاعل البشري. إن قدرته على معالجة كميات هائلة من البيانات وتحديد الأنماط تمكن من اتخاذ قرارات أكثر استنارة وكفاءة.'
     }
 };
 
@@ -49,7 +55,7 @@ const ExampleTexts: React.FC<ExampleTextsProps> = ({ onUseExample }) => {
                     </div>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 mb-4">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 mb-4">
                     {Object.keys(examples).map(toolKey => {
                         const tool = toolKey as Tool;
                         return (

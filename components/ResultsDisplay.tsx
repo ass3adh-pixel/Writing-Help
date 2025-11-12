@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { Tool, AnalysisResult, PlagiarismResult, PlagiarismSource, SummarizationResult } from '../types';
+import { Tool, AnalysisResult, PlagiarismResult, PlagiarismSource, SummarizationResult, AIDetectionResult } from '../types';
 import { LoaderIcon, WritingIllustration, WarningIcon, LinkIcon, CopyIcon, ReplaceIcon, CheckIcon, PencilIcon } from './Icons';
 import AdPlaceholder from './AdPlaceholder';
 
@@ -240,6 +241,8 @@ const getToolTitle = (tool: Tool): string => {
             return 'الملخص';
         case Tool.Grammar:
             return 'التدقيق النحوي والإملائي';
+        case Tool.AIDetector:
+            return 'نتيجة كاشف الذكاء الاصطناعي';
         default:
             return 'النتيجة';
     }
@@ -338,6 +341,58 @@ const SummarizationView: React.FC<{
     );
 };
 
+const AIDetectionView: React.FC<{ result: AIDetectionResult }> = ({ result }) => {
+    const { humanPercentage, aiPercentage, explanation } = result;
+
+    return (
+        <div className="space-y-6 animate-fade-in-up">
+            <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-2 pb-3 border-b border-slate-200 dark:border-slate-700">نتيجة كاشف الذكاء الاصطناعي</h3>
+            
+            <div className="p-6 bg-slate-50 dark:bg-slate-900/50 rounded-lg border dark:border-slate-700">
+                <div className="mb-4">
+                    <div className="flex justify-between items-center text-sm font-semibold mb-2">
+                        <span className="text-green-600 dark:text-green-400">محتوى بشري</span>
+                        <span className="text-purple-600 dark:text-purple-400">محتوى ذكاء اصطناعي</span>
+                    </div>
+                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-8 flex overflow-hidden">
+                        <div 
+                            className="bg-green-500 h-8 flex items-center justify-center text-white font-bold transition-all duration-1000 ease-out" 
+                            style={{ width: `${humanPercentage}%` }}
+                        >
+                            {humanPercentage > 10 && `${Math.round(humanPercentage)}%`}
+                        </div>
+                        <div 
+                            className="bg-purple-500 h-8 flex items-center justify-center text-white font-bold transition-all duration-1000 ease-out" 
+                            style={{ width: `${aiPercentage}%` }}
+                        >
+                            {aiPercentage > 10 && `${Math.round(aiPercentage)}%`}
+                        </div>
+                    </div>
+                </div>
+
+                <div className="text-center mt-6">
+                    <p className="text-2xl md:text-3xl font-bold text-slate-800 dark:text-white">
+                        يبدو أن هذا النص على الأرجح <span className={humanPercentage >= aiPercentage ? 'text-green-600' : 'text-purple-600'}>
+                            {humanPercentage >= aiPercentage ? 'مكتوب بواسطة إنسان' : 'مولّد بالذكاء الاصطناعي'}
+                        </span>.
+                    </p>
+                </div>
+            </div>
+
+            <div>
+                <h4 className="text-md font-semibold text-slate-800 dark:text-white mb-2">
+                    تحليل النموذج
+                </h4>
+                <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-lg border border-slate-200 dark:border-slate-700">
+                    <p className="text-slate-600 dark:text-slate-300 text-base leading-relaxed">
+                        {explanation}
+                    </p>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 
 const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ isLoading, error, result, activeTool, setInputText, analyzedText }) => {
     if (isLoading) {
@@ -380,6 +435,8 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ isLoading, error, resul
             case Tool.Paraphrase:
             case Tool.Grammar:
                 return <GenericResultView content={result as string} tool={activeTool} onReplaceText={setInputText} />;
+            case Tool.AIDetector:
+                return <AIDetectionView result={result as AIDetectionResult} />;
             default:
                 return null;
         }

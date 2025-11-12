@@ -4,6 +4,7 @@ export enum Tool {
     Paraphrase = 'paraphrase',
     Summarize = 'summarize',
     Grammar = 'grammar',
+    AIDetector = 'ai_detector',
 }
 
 export type SummaryLength = 'short' | 'medium' | 'long' | 'bullet_points';
@@ -27,7 +28,13 @@ export interface SummarizationResult {
     reductionPercentage: number;
 }
 
-export type AnalysisResult = string | PlagiarismResult | SummarizationResult | null;
+export interface AIDetectionResult {
+    humanPercentage: number;
+    aiPercentage: number;
+    explanation: string;
+}
+
+export type AnalysisResult = string | PlagiarismResult | SummarizationResult | AIDetectionResult | null;
 
 // Fix: Add User interface for LoginView component
 export interface User {

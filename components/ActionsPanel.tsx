@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Tool } from '../types';
-import { PlagiarismIcon, ParaphraseIcon, SummarizeIcon, GrammarIcon } from './Icons';
+import { PlagiarismIcon, ParaphraseIcon, SummarizeIcon, GrammarIcon, AIDetectorIcon } from './Icons';
 
 interface ActionsPanelProps {
     activeTool: Tool;
@@ -13,6 +13,7 @@ const tools = [
     { id: Tool.Paraphrase, name: 'إعادة صياغة', icon: <ParaphraseIcon /> },
     { id: Tool.Summarize, name: 'تلخيص', icon: <SummarizeIcon /> },
     { id: Tool.Grammar, name: 'تدقيق نحوي', icon: <GrammarIcon /> },
+    { id: Tool.AIDetector, name: 'كاشف الذكاء الاصطناعي', icon: <AIDetectorIcon /> },
 ];
 
 const ActionsPanel: React.FC<ActionsPanelProps> = ({ activeTool, setActiveTool }) => {

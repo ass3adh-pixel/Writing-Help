@@ -17,6 +17,11 @@ const About: React.FC<AboutProps> = ({ setCurrentView }) => {
         setCurrentView('privacy');
     };
 
+    const handleBackClick = () => {
+        setCurrentView('app');
+        window.scrollTo(0, 0);
+    };
+
     const content = {
         ar: {
             title: "حول مساعد الكتابة الذكي",
@@ -40,6 +45,7 @@ const About: React.FC<AboutProps> = ({ setCurrentView }) => {
                             <li><strong>إعادة الصياغة:</strong> يقترح طرقًا بديلة للتعبير عن أفكارك للحصول على وضوح وتأثير أفضل.</li>
                             <li><strong>التلخيص:</strong> يستخرج النقاط الرئيسية من النصوص الطويلة لتقديم ملخصات موجزة.</li>
                             <li><strong>التدقيق النحوي:</strong> يحدد ويصحح الأخطاء النحوية والإملائية وعلامات الترقيم.</li>
+                            <li><strong>كاشف الذكاء الاصطناعي:</strong> يحلل النص لتحديد احتمالية كتابته بواسطة إنسان مقابل الذكاء الاصطناعي.</li>
                         </ul>
                     `
                 },
@@ -71,6 +77,7 @@ const About: React.FC<AboutProps> = ({ setCurrentView }) => {
                             <li><strong>Paraphrasing:</strong> Suggests alternative ways to express your ideas for better clarity and impact.</li>
                             <li><strong>Summarization:</strong> Extracts key points from long texts to provide concise summaries.</li>
                             <li><strong>Grammar Checking:</strong> Identifies and corrects grammatical, spelling, and punctuation errors.</li>
+                            <li><strong>AI Detector:</strong> Analyzes text to determine the likelihood of it being written by a human versus an AI.</li>
                         </ul>
                     `
                 },
@@ -108,8 +115,17 @@ const About: React.FC<AboutProps> = ({ setCurrentView }) => {
     const currentContent = content[language];
 
     return (
-        <div className="max-w-4xl mx-auto p-4 md:p-8">
+        <div className="max-w-4xl mx-auto p-4 md:p-8 animate-fade-in-up">
             <div className="bg-white dark:bg-slate-800 p-8 rounded-3xl shadow-xl border border-slate-200 dark:border-slate-700">
+                <button
+                    onClick={handleBackClick}
+                    className="inline-flex items-center gap-2 text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 transition-colors mb-4 text-sm font-semibold"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                    </svg>
+                    <span>العودة إلى الرئيسية</span>
+                </button>
                 <div className="flex justify-between items-center mb-6 pb-4 border-b dark:border-slate-600">
                     <h1 className="text-3xl font-bold text-slate-900 dark:text-white">{currentContent.title}</h1>
                     <button onClick={toggleLanguage} className="text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:underline">

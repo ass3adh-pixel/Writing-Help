@@ -79,6 +79,9 @@ const App: React.FC = () => {
                 case Tool.Grammar:
                     apiResponse = await geminiService.checkGrammar(inputText);
                     break;
+                case Tool.AIDetector:
+                    apiResponse = await geminiService.detectAIText(inputText);
+                    break;
             }
             setResult(apiResponse);
         } catch (err: unknown) {
@@ -101,6 +104,11 @@ const App: React.FC = () => {
         setInputText(text);
         setActiveTool(tool);
         document.getElementById('main-app')?.scrollIntoView({ behavior: 'smooth' });
+    };
+
+    const handleLogoClick = () => {
+        setCurrentView('app');
+        window.scrollTo(0, 0);
     };
 
     const MainAppView = () => (
@@ -160,7 +168,7 @@ const App: React.FC = () => {
             case 'about':
                 return <About setCurrentView={setCurrentView} />;
             case 'privacy':
-                return <PrivacyPolicy />;
+                return <PrivacyPolicy setCurrentView={setCurrentView} />;
             case 'app':
             default:
                 return (
@@ -178,7 +186,7 @@ const App: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-gray-900 text-slate-800 dark:text-slate-200">
-            <Header />
+            <Header onLogoClick={handleLogoClick} />
             <main>
                 {renderCurrentView()}
             </main>
